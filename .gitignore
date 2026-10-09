@@ -1,0 +1,37 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# env files (these hold your secrets, never commit them)
+.env
+.env.*
+!.env.example
+
+# build / misc
+build/
+dist/
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# vercel
+.vercel
+
+# editor
+.vscode/*
+!.vscode/settings.json
+.idea/
+
+# python helper scripts used for edits
+shift.py
+shift2.py

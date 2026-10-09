@@ -1,0 +1,145 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+
+enum Kind { HACKATHON MEETUP WORKSHOP CONFERENCE OTHER }
+enum Mode { ONLINE INPERSON HYBRID }
+enum Status { SAVED REGISTERED PARTICIPATED SKIPPED }
+
+model Event {
+  id String @id @default(cuid())
+  source String
+  externalId String
+  kind Kind @default(HACKATHON)
+  title String
+  url String?
+  description String? @db.Text
+  problemStatements Json @default("[]")
+  rules String? @db.Text
+  rounds Json @default("[]")
+  startsAt DateTime?
+  endsAt DateTime?
+  registrationDeadline DateTime?
+  mode Mode?
+  venue String?
+  city String?
+  country String?
+  isFree Boolean?
+  prize String?
+  tags String[]
+  imageUrl String?
+  enrichedAt DateTime?
+  createdById String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userEvents UserEvent[]
+  @@unique([source, externalId])
+  @@index([startsAt])
+  @@index([kind])
+}
+model UserEvent {
+  id String @id @default(cuid())
+  userId String
+  eventId String
+  status Status @default(SAVED)
+  notes String? @db.Text
+  teamName String?
+  result String?
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  projects Project[]
+  certificates Certificate[]
+  teammates Teammate[]
+  @@unique([userId, eventId])
+}
+model Project {
+  id String @id @default(cuid())
+  userId String
+  userEventId String?
+  name String
+  summary String? @db.Text
+  features String[]
+  techStack String[]
+  repoUrl String?
+  liveUrl String?
+  repoStars Int?
+  lastPushAt DateTime?
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userEvent UserEvent? @relation(fields: [userEventId], references: [id], onDelete: SetNull)
+}
+model Certificate {
+  id String @id @default(cuid())
+  userId String
+  userEventId String?
+  title String
+  fileUrl String
+  issuedAt DateTime?
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userEvent UserEvent? @relation(fields: [userEventId], references: [id], onDelete: SetNull)
+}
+model Preset {
+  id String @id @default(cuid())
+  userId String
+  name String
+  filters Json
+  isDefault Boolean @default(false)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+model User {
+  id String @id @default(cuid())
+  name String?
+  email String? @unique
+  emailVerified DateTime?
+  image String?
+  calendarToken String @unique @default(cuid())
+  accounts Account[]
+  sessions Session[]
+  userEvents UserEvent[]
+  projects Project[]
+  certificates Certificate[]
+  presets Preset[]
+}
+model Account {
+  id String @id @default(cuid())
+  userId String
+  type String
+  provider String
+  providerAccountId String
+  refresh_token String? @db.Text
+  access_token String? @db.Text
+  expires_at Int?
+  token_type String?
+  scope String?
+  id_token String? @db.Text
+  session_state String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+model Session {
+  id String @id @default(cuid())
+  sessionToken String @unique
+  userId String
+  expires DateTime
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+model VerificationToken {
+  identifier String
+  token String
+  expires DateTime
+  @@unique([identifier, token])
+}
+model Teammate {
+  id String @id @default(cuid())
+  userId String
+  userEventId String
+  name String
+  role String?
+  email String?
+  linkedinUrl String?
+  githubUrl String?
+  createdAt DateTime @default(now())
+  userEvent UserEvent @relation(fields: [userEventId], references: [id], onDelete: Cascade)
+  @@index([userEventId])
+}
